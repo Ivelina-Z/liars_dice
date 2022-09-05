@@ -1,3 +1,4 @@
+from readline import set_completion_display_matches_hook
 import pygame
 import numpy as np 
 import sys
@@ -46,7 +47,28 @@ def background():
     pygame.draw.circle(WIN, BROWN_SIENNA, (TABLE_CENTER), TABLE_RADIUS)
     pygame.display.update()
 
+
+# dices 
+def random_dices(CUP_CENTER):
+    dices_locations = {
+    'dice_1': (CUP_CENTER[0] - DICE_SIZE[0] / 2, CUP_CENTER[1] - 1.5 * DICE_SIZE[1]),
+    'dice_2': (CUP_CENTER[0] - DICE_SIZE[0] - 30, CUP_CENTER[1] - DICE_SIZE[1]),
+    'dice_3': (CUP_CENTER[0] + DICE_SIZE[0] - 20, CUP_CENTER[1] - 0.75 * DICE_SIZE[1]),
+    'dice_4': (CUP_CENTER[0] - 1.1 * DICE_SIZE[0], CUP_CENTER[1] + 0.25 * DICE_SIZE[1]),
+    'dice_5': (CUP_CENTER[0] + 0.25 * DICE_SIZE[0], CUP_CENTER[1] + DICE_SIZE[1] / 2)
+    }
+    dices = np.random.randint(1, 7, 5)
+    print(dices)
+    for dice in enumerate(dices):
+        dice_img = pygame.image.load(f'pics/Dice-{dice[1]}-Y.jpg')
+        dice_img = pygame.transform.scale(dice_img, DICE_SIZE)
+        WIN.blit(dice_img, (dices_locations[f'dice_{dice[0] + 1}'][0], dices_locations[f'dice_{dice[0] + 1}'][1]))
+        pygame.display.update()
+    return dices
+
+
 background()
+first_player_dices = random_dices(PLAYER_ONE_POSITION)
 
 running = True
 
