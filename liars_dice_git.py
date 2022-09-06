@@ -94,6 +94,9 @@ liar_or_bid_window()
 
 running = True
 
+mouse_x = 0
+mouse_y = 0
+
 # game loop
 while running:
     for event in pygame.event.get():
@@ -101,4 +104,15 @@ while running:
             running = False
             pygame.quit()
             sys.exit()
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            mouse_x, mouse_y = event.pos
+            print(mouse_x, mouse_y)
+            if BUTTON_BID_LOCATION[0] + BUTTON_SIZE[0] >= mouse_x >= BUTTON_BID_LOCATION[0]\
+                 and BUTTON_BID_LOCATION[1] + BUTTON_SIZE[1] >= mouse_y >= BUTTON_BID_LOCATION[1]: 
+                print('bid')
+            elif BUTTON_LIAR_LOCATION[0] + BUTTON_SIZE[0] >= mouse_x >= BUTTON_LIAR_LOCATION[0]\
+                 and BUTTON_LIAR_LOCATION[1] + BUTTON_SIZE[1] >= mouse_y >= BUTTON_LIAR_LOCATION[1]:
+                print('liar')
+            else:
+                print('out of range')       
         fps_clock.tick()
