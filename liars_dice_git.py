@@ -1,5 +1,3 @@
-from binhex import LINELEN
-from readline import set_completion_display_matches_hook
 import pygame
 import numpy as np 
 import sys
@@ -25,45 +23,55 @@ PLAYER_TWO_COLOR = pygame.Color(177, 156, 217) # purple player
 
 
 # define fonts 
-BUTTONS_FONT = pygame.font.SysFont('Calibri', 50)
+BUTTONS_FONT = pygame.font.SysFont('ubuntu', 40, italic=True)
 
 # define table geometry
 TABLE_RADIUS = 400 
-TABLE_CENTER = (int(WIDTH / 2), int(HEIGHT / 2))
+TABLE_CENTER_X, TABLE_CENTER_Y = (int(WIDTH / 2), int(HEIGHT / 2))
 CUP_RADIUS = 100
 
 # define dice geometry
-DICE_SIZE = (50, 50)
-
-# move buttons
-BUTTON_SIZE = (150, 50)
-BUTTON_BID_LOCATION = (TABLE_CENTER[0] - BUTTON_SIZE[0], TABLE_CENTER[1])
-BUTTON_LIAR_LOCATION = (TABLE_CENTER[0] + 20, TABLE_CENTER[1])
+DICE_SIZE_X, DICE_SIZE_Y = (50, 50)
 
 # define players' position on the table
-PLAYER_ONE_POSITION = (TABLE_CENTER[0], HEIGHT - CUP_RADIUS - 50)
+PLAYER_ONE_POSITION = (TABLE_CENTER_X, HEIGHT - CUP_RADIUS - 50)
 
 # visualise background
 def background():
     WIN.fill(WHITE)
-    pygame.draw.circle(WIN, BROWN_SIENNA, (TABLE_CENTER), TABLE_RADIUS)
+    pygame.draw.circle(WIN, BROWN_SIENNA, (TABLE_CENTER_X, TABLE_CENTER_Y), TABLE_RADIUS)
     pygame.display.update()
+
+
+def button(colour: pygame.Color, location: tuple, size: tuple, border=False, border_colour = None):
+    BUTTON_LOCATION = (location[0] - size[0] / 2, location[1] - size[1] / 2)
+    button_rectangle = pygame.draw.rect(WIN, colour, (BUTTON_LOCATION, size))
+    if border:
+        pygame.draw.rect(WIN, border_colour, (BUTTON_LOCATION, size), 4) 
+    return button_rectangle
+
+
+def button_text(text, font: pygame.font, colour: pygame.Color, location: tuple):
+    button_text_surface = BUTTONS_FONT.render(text, True, colour)
+    button_text_rectangle = button_text_surface.get_rect()
+    button_text_rectangle.center = location
+    return button_text_surface, button_text_rectangle
 
 
 # dices 
 def random_dices(CUP_CENTER):
     dices_locations = {
-    'dice_1': (CUP_CENTER[0] - DICE_SIZE[0] / 2, CUP_CENTER[1] - 1.5 * DICE_SIZE[1]),
-    'dice_2': (CUP_CENTER[0] - DICE_SIZE[0] - 30, CUP_CENTER[1] - DICE_SIZE[1]),
-    'dice_3': (CUP_CENTER[0] + DICE_SIZE[0] - 20, CUP_CENTER[1] - 0.75 * DICE_SIZE[1]),
-    'dice_4': (CUP_CENTER[0] - 1.1 * DICE_SIZE[0], CUP_CENTER[1] + 0.25 * DICE_SIZE[1]),
-    'dice_5': (CUP_CENTER[0] + 0.25 * DICE_SIZE[0], CUP_CENTER[1] + DICE_SIZE[1] / 2)
+    'dice_1': (CUP_CENTER[0] - DICE_SIZE_X / 2, CUP_CENTER[1] - 1.5 * DICE_SIZE_Y),
+    'dice_2': (CUP_CENTER[0] - DICE_SIZE_X - 30, CUP_CENTER[1] - DICE_SIZE_Y),
+    'dice_3': (CUP_CENTER[0] + DICE_SIZE_X - 20, CUP_CENTER[1] - 0.75 * DICE_SIZE_Y),
+    'dice_4': (CUP_CENTER[0] - 1.1 * DICE_SIZE_X, CUP_CENTER[1] + 0.25 * DICE_SIZE_Y),
+    'dice_5': (CUP_CENTER[0] + 0.25 * DICE_SIZE_X, CUP_CENTER[1] + DICE_SIZE_Y / 2)
     }
     dices = np.random.randint(1, 7, 5)
     print(dices)
     for dice in enumerate(dices):
         dice_img = pygame.image.load(f'pics/Dice-{dice[1]}-Y.jpg')
-        dice_img = pygame.transform.scale(dice_img, DICE_SIZE)
+        dice_img = pygame.transform.scale(dice_img, (DICE_SIZE_X, DICE_SIZE_Y))
         WIN.blit(dice_img, (dices_locations[f'dice_{dice[0] + 1}'][0], dices_locations[f'dice_{dice[0] + 1}'][1]))
         pygame.display.update()
     return dices
@@ -71,26 +79,24 @@ def random_dices(CUP_CENTER):
 
 # possible moves
 def liar_or_bid_window():
-    bid_text_surface = BUTTONS_FONT.render('BID', True, BUTTON_TEXT_COLOR)
-    bid_text_rectangle = bid_text_surface.get_rect()
-    bid_text_rectangle.center = (BUTTON_BID_LOCATION[0] + BUTTON_SIZE[0] / 2, BUTTON_BID_LOCATION[1] + BUTTON_SIZE[1] / 2)
+    BUTTON_SIZE_X, BUTTON_SIZE_Y = (150, 50)
+    BID_BUTTON_LOCATION = (TABLE_CENTER_X - BUTTON_SIZE_X / 2, TABLE_CENTER_Y + BUTTON_SIZE_Y / 2)
+    LIAR_BUTTON_LOCATION = (TABLE_CENTER_X + BUTTON_SIZE_X / 2 + 20, TABLE_CENTER_Y + BUTTON_SIZE_Y / 2)
+    
+    bid_button = button(BUTTON_COLOR, BID_BUTTON_LOCATION, (BUTTON_SIZE_X, BUTTON_SIZE_Y), border=True, border_colour=BUTTON_TEXT_COLOR)
+    bid_text_surface, bid_text_rectangle = button_text('BID', BUTTONS_FONT, BUTTON_TEXT_COLOR, BID_BUTTON_LOCATION)
 
-    liar_text_surface = BUTTONS_FONT.render('LIAR', True, BUTTON_TEXT_COLOR)
-    liar_text_rectangle = bid_text_surface.get_rect()
-    liar_text_rectangle.center = (BUTTON_LIAR_LOCATION[0] + BUTTON_SIZE[0] / 2.3, BUTTON_LIAR_LOCATION[1] + BUTTON_SIZE[1] / 2)
-
-    pygame.draw.rect(WIN, BUTTON_COLOR, (BUTTON_BID_LOCATION, BUTTON_SIZE))
-    pygame.draw.rect(WIN, BUTTON_TEXT_COLOR, (BUTTON_BID_LOCATION, BUTTON_SIZE), 4)
-    pygame.draw.rect(WIN, BUTTON_COLOR, (BUTTON_LIAR_LOCATION, BUTTON_SIZE))
-    pygame.draw.rect(WIN, BUTTON_TEXT_COLOR, (BUTTON_LIAR_LOCATION, BUTTON_SIZE), 4)
-
+    liar_button = button(BUTTON_COLOR, LIAR_BUTTON_LOCATION, (BUTTON_SIZE_X, BUTTON_SIZE_Y), border=True, border_colour=BUTTON_TEXT_COLOR)
+    liar_text_surface, liar_text_rectangle = button_text('LIAR', BUTTONS_FONT, BUTTON_TEXT_COLOR, LIAR_BUTTON_LOCATION)
     WIN.blit(bid_text_surface, bid_text_rectangle)
     WIN.blit(liar_text_surface, liar_text_rectangle)
     pygame.display.update()
+    return liar_button, bid_button
+
 
 background()
 first_player_dices = random_dices(PLAYER_ONE_POSITION)
-liar_or_bid_window()
+liar_button, bid_button = liar_or_bid_window()
 
 running = True
 
@@ -106,13 +112,10 @@ while running:
             sys.exit()
         elif event.type == pygame.MOUSEBUTTONDOWN:
             mouse_x, mouse_y = event.pos
-            print(mouse_x, mouse_y)
-            if BUTTON_BID_LOCATION[0] + BUTTON_SIZE[0] >= mouse_x >= BUTTON_BID_LOCATION[0]\
-                 and BUTTON_BID_LOCATION[1] + BUTTON_SIZE[1] >= mouse_y >= BUTTON_BID_LOCATION[1]: 
+            if bid_button.right >= mouse_x >= bid_button.left and bid_button.bottom >= mouse_y >= bid_button.top: 
                 print('bid')
-            elif BUTTON_LIAR_LOCATION[0] + BUTTON_SIZE[0] >= mouse_x >= BUTTON_LIAR_LOCATION[0]\
-                 and BUTTON_LIAR_LOCATION[1] + BUTTON_SIZE[1] >= mouse_y >= BUTTON_LIAR_LOCATION[1]:
+            elif liar_button.right >= mouse_x >= liar_button.left and liar_button.bottom >= mouse_y >= liar_button.top:
                 print('liar')
             else:
-                print('out of range')       
+                print('out of range')     
         fps_clock.tick()
